@@ -1,17 +1,11 @@
-/*
- * main.cpp
- *
- *  Created on: 9.06.2016 г.
- *      Author: Gody
- */
-
 #include <iostream>
+#include "Building.h"
 
-int main()
+int main ()
 {
-	std::cout << std::endl;
-	return 0;
+  Building SoftUni ("Softuni",10,5,6,7);
+
+  std::cout	<< SoftUni.getEmployees() << " " << SoftUni.getFloors() << " " << SoftUni.getName() << " " << SoftUni.getWorkingSeats();
+  return 0;
 }
-
-
 
