@@ -3,6 +3,7 @@ class Building
 {
 public:
 	Building(std::string, int, int, int, int);
+	Building();
 	virtual ~Building();
 	int getFloors();
 	int getOffices();

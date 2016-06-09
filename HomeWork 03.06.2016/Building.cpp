@@ -8,6 +8,10 @@ Building::Building(std::string name, int floors,int offices,int employes,int wor
 	this->employes = employes;
 	this->workingSeats = workingSeats;
 }
+Building::Building()
+{
+
+}
 
 Building::~Building()
 {
