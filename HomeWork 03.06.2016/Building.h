@@ -2,12 +2,12 @@
 class Building
 {
 public:
-	Building(std::string, int, int, int, int);
+	Building(std::string, float, int, float, int);
 	Building();
 	virtual ~Building();
-	int getFloors();
+	float getFloors();
 	int getOffices();
-	int getEmployees();
+	float getEmployees();
 	int getWorkingSeats();
 	std::string getName();
 

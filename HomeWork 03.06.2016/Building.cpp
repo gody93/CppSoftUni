@@ -1,6 +1,6 @@
 #include "Building.h"
 
-Building::Building(std::string name, int floors,int offices,int employes,int workingSeats)
+Building::Building(std::string name, float floors,int offices,float employes,int workingSeats)
 {
 	this->name = name;
 	this->floors = floors;
@@ -17,12 +17,12 @@ Building::~Building()
 {
 }
 
-int Building::getEmployees()
+float Building::getEmployees()
 {
 	return this->employes;
 }
 
-int Building::getFloors()
+float Building::getFloors()
 {
 	return this->floors;
 }
