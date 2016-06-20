@@ -1,6 +1,6 @@
 #include "Person.h"
 
-Person::Person()
+Person::Person() : inUse(false)
 {
 }
 Person::~Person()
@@ -47,3 +47,16 @@ void Person::getData()
 	std::cout << "Id - " << this->id << std::endl;
 	std::cout << "Course - " << this->currCourse << std::endl;
 }
+
+bool Person::isInUse()
+{
+	return inUse;
+}
+
+void Person::setUse()
+{
+	inUse = true;
+}
+
+
+

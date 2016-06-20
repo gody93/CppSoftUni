@@ -56,6 +56,7 @@ void Student::setData()
 	this->currPoints = points;
 
 	std::cout << "Please enter mark: ";
+	std::cin.clear();
 	std::cin >> mark;
 	this->avgMark = mark;
 }

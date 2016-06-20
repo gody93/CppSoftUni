@@ -1,7 +1,7 @@
 CC=g++
-CFLAGS=-c -Wall -ggdb
+CFLAGS=-c -ggdb
 LDFLAGS=
-SOURCES=main.cpp Person.cpp Teacher.cpp Student.cpp
+SOURCES=main.cpp Person.cpp Teacher.cpp Student.cpp GuestTeach.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=main
 
@@ -13,4 +13,4 @@ $(EXECUTABLE): $(OBJECTS)
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@
 clean:
-	rm *o
+	rm *o main

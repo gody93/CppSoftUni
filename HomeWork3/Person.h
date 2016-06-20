@@ -21,11 +21,14 @@ public:
 	virtual void setData();
 	virtual void getData();
 
+	bool isInUse();
+	void setUse();
 protected:
 	unsigned short currCourse;
 
 
 private:
+	bool inUse;
 	unsigned short id;
 	std::string name;
 };
