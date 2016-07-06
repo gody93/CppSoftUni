@@ -6,7 +6,7 @@
  */
 
 #include "Calculations.h"
-
+using namespace Calculator;
 Calculations::Calculations(Environment &newEnv) : environment(newEnv)
 {
 }
@@ -34,7 +34,7 @@ float Calculations::airTime(Character &object)
 
 bool Calculations::canItJump(Character &object,float height)
 {
-	if(maxJumpHeight(object) <= height)
+	if(maxJumpHeight(object) >= height)
 	{
 		return true;
 	}

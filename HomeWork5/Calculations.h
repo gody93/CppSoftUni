@@ -4,18 +4,20 @@
 #include "Character.h"
 #include "Environment.h"
 #include <iostream>
-
-class Calculations
+namespace Calculator
 {
-public:
-	Calculations(Environment&);
-	virtual ~Calculations();
+	class Calculations
+	{
+	public:
+		Calculations(Environment&);
+		virtual ~Calculations();
 
-	float maxJumpHeight(Character&);
-	float airTime(Character&);
-	bool canItJump(Character&,float);
-private:
-	Environment environment;
-};
+		float maxJumpHeight(Character&);
+		float airTime(Character&);
+		bool canItJump(Character&,float);
+	private:
+		Environment environment;
+	};
+}
 
 #endif /* HOMEWORK5_CALCULATIONS_H_ */
