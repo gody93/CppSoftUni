@@ -91,10 +91,12 @@ void Voter::setVote(const std::string& vote)
 {
 	this->vote = vote;
 }
+
+//We predefine this operator, so even if there's a change in one parameter only it gets pushed back in the set.
 bool Voter::operator<(const Voter& v) const
 {
 	if(age < v.age && city[0] < v.city[0] && ethnos[0] < v.ethnos[0] &&
-	   gender[0] < v.gender[0] && name[0] < v.name[0] && vote[0] < v.vote[0] )
+	   gender < v.gender && name[0] < v.name[0] && vote[0] < v.vote[0] )
 	{
 		return age;
 	}

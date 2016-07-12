@@ -6,6 +6,7 @@
  */
 #include <iostream>
 #include <set>
+#include <map>
 #include "Voter.h"
 #include "VoteCollector.h"
 
@@ -20,8 +21,11 @@ public:
 	virtual ~Brexit();
 
 	void start();
-private:
+	void collectorsMenu();
+	Voter votersMenu();
+	void results();
 
+private:
 	std::set<Voter> voters;
 };
 
