@@ -1,12 +1,4 @@
-/*
- * Voter.cpp
- *
- *  Created on: Jul 12, 2016
- *      Author: default
- */
-
 #include "Voter.h"
-
 
 Voter::Voter(int age,std::string city,std::string ethnos, char gender, std::string name, std::string vote)
 {
@@ -92,18 +84,6 @@ void Voter::setVote(std::string& vote)
 	std::transform(vote.begin(),vote.end(),vote.begin(),::tolower);
 	this->vote = vote;
 }
-
-//We predefine this operator, so even if there's a change in one parameter only it gets pushed back in the set.
-bool Voter::operator<(const Voter& v) const
-{
-	if(age < v.age && city[0] < v.city[0] && ethnos[0] < v.ethnos[0] &&
-	   gender < v.gender && name[0] < v.name[0] && vote[0] < v.vote[0] )
-	{
-		return age;
-	}
-	return v.age;
-}
-
 
 
 

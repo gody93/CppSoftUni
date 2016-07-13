@@ -1,10 +1,3 @@
-/*
- * Brexit.cpp
- *
- *  Created on: Jul 12, 2016
- *      Author: default
- */
-
 #include "Brexit.h"
 
 Brexit::Brexit()
@@ -45,7 +38,7 @@ void Brexit::collectorsMenu(std::vector<Voter> &voters)
 	std::cout << "Congratulations you entered the code correct!\n";
 	do
 	{
-		std::cout << "\nChoose one of the following: " << std::endl;
+		std::cout << "\nChoose one of the following(Enter 0 to go back to main menu): " << std::endl;
 		std::cout << "1.Results in percent.\n2.Results by numbers.\n3.Results by age.\n4.Results based on name.\n"
 					 "5.Results based on city.\n6.Results based on either age/name/ethnos/gender/city" << std::endl;
 		std::cin >> choice;
