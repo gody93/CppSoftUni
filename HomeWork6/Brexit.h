@@ -5,8 +5,7 @@
  *      Author: default
  */
 #include <iostream>
-#include <set>
-#include <map>
+#include <vector>
 #include "Voter.h"
 #include "VoteCollector.h"
 
@@ -21,12 +20,12 @@ public:
 	virtual ~Brexit();
 
 	void start();
-	void collectorsMenu();
+	void collectorsMenu(std::vector<Voter>&);
 	Voter votersMenu();
-	void results();
 
 private:
-	std::set<Voter> voters;
+	std::vector<Voter> voters;
+
 };
 
 #endif /* HOMEWORK6_BREXIT_H_ */

@@ -87,8 +87,9 @@ const std::string& Voter::getVote() const
 	return vote;
 }
 
-void Voter::setVote(const std::string& vote)
+void Voter::setVote(std::string& vote)
 {
+	std::transform(vote.begin(),vote.end(),vote.begin(),::tolower);
 	this->vote = vote;
 }
 

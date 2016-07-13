@@ -9,6 +9,7 @@
 #define HOMEWORK6_VOTER_H_
 
 #include <iostream>
+#include <algorithm>
 
 class Voter
 {
@@ -35,7 +36,7 @@ public:
 	void setName(const std::string& name);
 
 	const std::string& getVote() const;
-	void setVote(const std::string& vote);
+	void setVote(std::string& vote);
 
 private:
 	int age;
