@@ -334,3 +334,7 @@
 (add-hook 'c++-mode-common-hook 'rtags-start-process-unless-running)
 
 (rtags-show-rtags-buffer)
+
+
+;; Start maximised (cross-platf)
+(add-hook 'window-setup-hook 'toggle-frame-maximized t)
