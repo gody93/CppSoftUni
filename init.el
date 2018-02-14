@@ -7,7 +7,7 @@
 (setq user-full-name "Gody")
 
 ;;Set default folder
-(setq default-directory "~/Projects/premier3/")
+(setq default-directory "~/projects/premier3/")
 
 ;;Package management
 (load "package")
@@ -29,6 +29,7 @@
 		      autopair
 			  ag
 			  magit
+			  counsel
 		      ))
 
 (dolist (p my-packages)
@@ -91,7 +92,7 @@
 (setq ido-use-filename-at-point 'nil)
 (setq ido-create-new-buffer 'always)
 ;;Set a priority of the files used so they show before others
-(setq ido-file-extensions-order '(".c" ".cpp" ".h" ".hpp"))
+(setq ido-file-extensions-order '(".cpp" ".h" ".c" ".hpp"))
 
 ;;Ido-vertical
 (require 'ido-vertical-mode)
@@ -201,7 +202,10 @@
 
 ;;font
 (add-to-list 'default-frame-alist
-             '(font . "Consolas"))
+			 '(font . "Consolas"))
+;;(add-to-list 'default-frame-alist
+;;			 '(font . "Semi Shaft"))
+
 (global-font-lock-mode 't)
 
 ;; Magit
@@ -234,12 +238,6 @@
 ;;remove trailing whitespace
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
-;;(add-to-list 'load-path "~/.emacs.d/bugz-mode")
-;;(require 'bugz-mode)
-
-;;(setq bugz-db-base "https://rd-sd-bugzilla.egt-bg.com/xmlrpc.cgi")
-;;(setq bugz-db-user "aleksandar.stankov@egt-bg.com")
-
 ;;Some clipboard thingies
 (setq kill-ring-max 100)
 (setq x-select-enable-clipboard t)
@@ -265,8 +263,8 @@
 (setq frame-title-format "%b")
 
 ;; Emacs server
-(if (not server-mode)
-    (server-start nil t))
+;;(if (not server-mode)
+;;    (server-start nil t))
 
 (provide 'init)
 ;;; init.el ends here
@@ -275,14 +273,25 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-names-vector
+   ["#32302F" "#FB4934" "#B8BB26" "#FABD2F" "#83A598" "#D3869B" "#17CCD5" "#EBDBB2"])
  '(custom-enabled-themes (quote (darktooth)))
  '(custom-safe-themes
    (quote
-	("1db337246ebc9c083be0d728f8d20913a0f46edc0a00277746ba411c149d7fe5" "e8a976fbc7710b60b069f27f5b2f1e216ec8d228fe5091f677717d6375d2669f" "6bb8133d789c96c383de9062019fb236dec2302346482eb8ff897b328b9a61a4" default)))
+	("a4d03266add9a1c8f12b5309612cbbf96e1291773c7bc4fb685bfdaf83b721c6" "0ee3fc6d2e0fc8715ff59aed2432510d98f7e76fe81d183a0eb96789f4d897ca" "00de442f1a471c98c62281bdf5000b4311db26832a0d6b6f8ffde8705e027828" "1db337246ebc9c083be0d728f8d20913a0f46edc0a00277746ba411c149d7fe5" "e8a976fbc7710b60b069f27f5b2f1e216ec8d228fe5091f677717d6375d2669f" "6bb8133d789c96c383de9062019fb236dec2302346482eb8ff897b328b9a61a4" default)))
  '(fci-rule-color "#2e2e2e")
+ '(magit-module-sections-hook (quote (magit-insert-modules-overview)))
+ '(magit-status-sections-hook
+   (quote
+	(magit-insert-status-headers magit-insert-merge-log magit-insert-rebase-sequence magit-insert-am-sequence magit-insert-sequencer-sequence magit-insert-bisect-output magit-insert-bisect-rest magit-insert-bisect-log magit-insert-untracked-files magit-insert-unstaged-changes magit-insert-staged-changes magit-insert-stashes magit-insert-unpulled-from-upstream magit-insert-unpushed-to-pushremote magit-insert-unpushed-to-upstream)))
  '(package-selected-packages
    (quote
-	(multiple-cursors smex magit ido-vertical-mode ido-ubiquitous ggtags flx-ido darktooth-theme counsel company-irony autopair ample-zen-theme ag)))
+	(company-rtags irony rtags multiple-cursors smex magit ido-vertical-mode ido-ubiquitous ggtags flx-ido darktooth-theme counsel company-irony autopair ample-zen-theme ag)))
+ '(pos-tip-background-color "#36473A")
+ '(pos-tip-foreground-color "#FFFFC8")
+ '(rtags-autostart-diagnostics t)
+ '(rtags-completions-enabled t)
+ '(rtags-process-flags "")
  '(vc-annotate-background "#3b3b3b")
  '(vc-annotate-color-map
    (quote
@@ -310,9 +319,20 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ediff-current-diff-B ((t (:background "#006430"))))
+ '(ediff-even-diff-A ((t (:background "gray27"))))
+ '(ediff-even-diff-Ancestor ((t nil)))
+ '(ediff-even-diff-B ((t (:background "gray27"))))
+ '(ediff-even-diff-C ((t nil)))
+ '(ediff-fine-diff-A ((t (:background "coral4"))))
+ '(ediff-fine-diff-Ancestor ((t (:background "sea green"))))
+ '(ediff-fine-diff-B ((t (:background "#004040"))))
+ '(ediff-odd-diff-A ((t (:background "gray27"))))
+ '(ediff-odd-diff-Ancestor ((t nil)))
+ '(ediff-odd-diff-B ((t (:background "gray27"))))
+ '(ediff-odd-diff-C ((t nil)))
  '(which-func ((t nil))))
 (put 'scroll-left 'disabled nil)
-
 ;;RTags
 
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
@@ -325,10 +345,9 @@
 (setq rtags-completions-enabled t)
 (push 'company-rtags company-backends)
 (global-company-mode)
-(define-key c-mode-base-map (kbd "<C-tab>") (function company-complete))
+(define-key c-mode-base-map (kbd "<C-tab>") (function company-rtags))
 (rtags-enable-standard-keybindings c-mode-base-map "\C-xr")
 (setq company-minimum-prefix-length 50)
-(global-set-key [C-tab] 'company-select-next)
 
 (add-hook 'c-mode-common-hook 'rtags-start-process-unless-running)
 (add-hook 'c++-mode-common-hook 'rtags-start-process-unless-running)
@@ -338,3 +357,9 @@
 
 ;; Start maximised (cross-platf)
 (add-hook 'window-setup-hook 'toggle-frame-maximized t)
+
+;;Uncomment region
+(global-set-key (kbd "C-x C-u") 'uncomment-region)
+
+;;Kill current buffer
+(global-set-key (kbd "C-x k") 'kill-this-buffer)
