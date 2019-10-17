@@ -31,6 +31,7 @@ values."
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
+     javascript
      csv
      ;; ---------------------------------package counsel not initialized in layer my-------------------------------
      ;; Example of useful layers you may want to use right away.
@@ -44,7 +45,6 @@ values."
      emacs-lisp
      git
      python
-     syntax-checking
      ;; markdown
      ;; org
      ;; (shell :variables
@@ -144,7 +144,7 @@ values."
    ;; Default font, or prioritized list of fonts. `powerline-scale' allows to
    ;; quickly tweak the mode-line size to make separators look not too crappy.
    dotspacemacs-default-font '("Source Code Pro"
-                               :size 16
+                               :size 14
                                :weight normal
                                :width normal
                                :powerline-scale 1.1)
@@ -213,7 +213,7 @@ values."
    ;; in all non-asynchronous sources. If set to `source', preserve individual
    ;; source settings. Else, disable fuzzy matching in all sources.
    ;; (default 'always)
-   dotspacemacs-helm-use-fuzzy 'always
+   dotspacemacs-helm-use-fuzzy 'source
    ;; If non nil the paste micro-state is enabled. When enabled pressing `p`
    ;; several times cycle between the kill ring content. (default nil)
    dotspacemacs-enable-paste-transient-state nil
@@ -347,10 +347,11 @@ you should place your code here."
   (setq ivy-re-builders-alist
         '((swiper . ivy--regex-plus)
           (counsel-imenu . ivy--regex-plus)
-          (t      . ivy--regex-fuzzy)))
+          (projectile-find-file . ivy--regex-plus)
+          (counsel-find-file . ivy--regex-fuzzy)))
 
   ;; automatically indent when press RET
-  (global-set-key (kbd "RET") 'newline-and-indent)
+  ;;(global-set-key (kbd "RET") 'newline-and-indent)
 
   ;;Treat headers as c++ rather than c
   (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
@@ -358,8 +359,8 @@ you should place your code here."
   ;; set appearance of a tab that is represented by 4 spaces
   (setq-default tab-width 4)
 
-  ;;enable region overwrite
-  (delete-selection-mode 1)
+  ;; projectile grep
+  (global-set-key (kbd "M-m p g") 'projectile-grep)
 
   ;;remove trailing whitespace
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
@@ -383,13 +384,14 @@ you should place your code here."
   (define-key ivy-minibuffer-map (kbd "RET") #'ivy-alt-done)
 
   ;; LSP
-  (require 'lsp)
+  (use-package lsp)
   ;; in case you are using client which is available as part of lsp refer to the
   ;; table bellow for the clients that are distributed as part of lsp-mode.el
-  (require 'lsp-clients)
-  (add-hook 'c++-mode-hook 'lsp)
-  (add-hook 'c-mode-hook 'lsp)
-  (add-hook 'lsp-after-open-hook 'lsp-ui-mode)
+  (use-package lsp-clients)
+  (use-package lsp-mode
+    :hook (c++-mode . lsp)
+    :hook (c-mode . lsp)
+    :commands lsp)
 
   ;; Dont show ui sideline
   (setq lsp-ui-sideline-show-flycheck nil)
@@ -405,23 +407,22 @@ you should place your code here."
   (global-set-key (kbd "<f9>") 'counsel-imenu)
   (add-hook 'imenu-after-jump-hook #'recenter-top-bottom)
 
-  (require 'cquery)
+  (use-package cquery)
   (setq cquery-executable "/home/default/.local/bin/cquery")
   (setq cquery-cache-dir "/home/default/.cquery_cached_index/")
   (setq cquery-extra-init-params
         '(:index (:comments 2) :cacheFormat "msgpack"))
-
-  (require 'company-lsp)
+  (setq cquery-sem-highlight-method 'font-lock)
+  (use-package company-lsp)
   (push 'company-lsp company-backends)
-
 
   ;;RTags
   ;(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
 
-  (require 'package)
+  (use-package package)
   (package-initialize)
   ;(require 'rtags)
-  (require 'company)
+  (use-package company)
 
   ;(setq rtags-autostart-diagnostics t)
   ;(rtags-diagnostics)
@@ -558,16 +559,19 @@ This function is called at the very end of Spacemacs initialization."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(flycheck-checker-error-threshold 3000)
+ '(gdb-many-windows t)
  '(ido-ignore-directories (quote ("\\`CVS/" "\\`\\.\\./" "\\`\\./" "\\`\\.git")))
+ '(lsp-enable-snippet nil)
  '(magit-status-sections-hook
    (quote
     (magit-insert-status-headers magit-insert-merge-log magit-insert-rebase-sequence magit-insert-am-sequence magit-insert-sequencer-sequence magit-insert-bisect-output magit-insert-bisect-rest magit-insert-bisect-log magit-insert-untracked-files magit-insert-unstaged-changes magit-insert-staged-changes magit-insert-stashes magit-insert-unpulled-from-upstream magit-insert-unpushed-to-upstream)))
  '(package-selected-packages
    (quote
-    (powerline org-plus-contrib multiple-cursors magit-popup hydra parent-mode flx highlight magit transient git-commit with-editor smartparens iedit anzu evil goto-chg projectile counsel swiper ivy bind-map bind-key yasnippet packed async avy popup company pkg-info epl f s yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode flycheck-pos-tip pos-tip cython-mode company-anaconda anaconda-mode pythonic nimbus-theme buffer-expose dash-functional dash lsp-ui cquery company-lsp lsp-mode markdown-mode flycheck ht ws-butler winum which-key wgrep web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline smex smeargle restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox orgit org-bullets open-junk-file neotree move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint key-chord json-mode js2-refactor js-doc ivy-hydra indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-make google-translate golden-ratio gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link fuzzy flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump diminish define-word csv-mode counsel-projectile company-tern company-statistics column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ac-ispell)))
+    (helm-themes helm-swoop helm-pydoc helm-projectile helm-mode-manager helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag ace-jump-helm-line helm helm-core lv skewer-mode simple-httpd json-snatcher json-reformat js2-mode tern powerline org-plus-contrib multiple-cursors magit-popup hydra parent-mode flx highlight magit transient git-commit with-editor smartparens iedit anzu evil goto-chg projectile counsel swiper ivy bind-map bind-key yasnippet packed async avy popup company pkg-info epl f s yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode flycheck-pos-tip pos-tip cython-mode company-anaconda anaconda-mode pythonic nimbus-theme buffer-expose dash-functional dash lsp-ui cquery company-lsp lsp-mode markdown-mode flycheck ht ws-butler winum which-key wgrep web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline smex smeargle restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox orgit org-bullets open-junk-file neotree move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint key-chord json-mode js2-refactor js-doc ivy-hydra indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-make google-translate golden-ratio gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link fuzzy flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump diminish define-word csv-mode counsel-projectile company-tern company-statistics column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ac-ispell)))
  '(projectile-globally-ignored-directories
    (quote
-    (".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" "/home/default/projects/premier3/data/"))))
+    (".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" "./data/"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
