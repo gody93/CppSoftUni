@@ -1,4 +1,5 @@
 ;; -*- mode: emacs-lisp -*-
+;; -*- lexical-binding: t; -*-
 ;; This file is loaded by Spacemacs at startup.
 ;; It must be stored in your home directory.
 
@@ -31,9 +32,6 @@ values."
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
-     javascript
-     csv
-     ;; ---------------------------------package counsel not initialized in layer my-------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
      ;; <M-m f e R> (Emacs style) to install them.
@@ -41,12 +39,19 @@ values."
      ivy
      (auto-completion :variables
                       auto-completion-enable-sort-by-usage t)
-     ;; better-defaults
+     ;;better-defaults
      emacs-lisp
      git
-     python
+     (python :variables
+             python-backend 'lsp
+             ;; python-tab-width 4
+             python-fill-column 99
+             python-formatter 'yapf
+             python-format-on-save t
+             python-sort-imports-on-save t
+             python-pipenv-activate t)
      ;; markdown
-     ;; org
+     org
      ;; (shell :variables
      ;;        shell-default-height 30
      ;;        shell-default-position 'bottom)
@@ -61,10 +66,10 @@ values."
    '(
      key-chord
      multiple-cursors
-     cquery
      company-lsp
      lsp-ui
      flycheck
+     lsp-ivy
     )
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -101,7 +106,7 @@ values."
    ;; when the current branch is not `develop'. Note that checking for
    ;; new versions works via git commands, thus it calls GitHub services
    ;; whenever you start Emacs. (default nil)
-   dotspacemacs-check-for-update nil
+   dotspacemacs-check-for-update t
    ;; If non-nil, a form that evaluates to a package directory. For example, to
    ;; use different package directories for different Emacs versions, set this
    ;; to `emacs-version'.
@@ -121,7 +126,7 @@ values."
    ;; directory. A string value must be a path to an image format supported
    ;; by your Emacs build.
    ;; If the value is nil then no banner is displayed. (default 'official)
-   dotspacemacs-startup-banner 'official
+   dotspacemacs-startup-banner 'random
    ;; List of items to show in startup buffer or an association list of
    ;; the form `(list-type . list-size)`. If nil then it is disabled.
    ;; Possible values for list-type are:
@@ -144,7 +149,7 @@ values."
    ;; Default font, or prioritized list of fonts. `powerline-scale' allows to
    ;; quickly tweak the mode-line size to make separators look not too crappy.
    dotspacemacs-default-font '("Source Code Pro"
-                               :size 14
+                               :size 15
                                :weight normal
                                :width normal
                                :powerline-scale 1.1)
@@ -339,6 +344,11 @@ you should place your code here."
   ;; Magit
   (global-set-key (kbd "C-x g") 'magit-status)
 
+  ;; ;;Update all submodules
+
+  (eval-after-load "magit" '(magit-define-popup-action 'magit-submodule-popup
+                              ?U "Update all (recursively)" 'magit-submodule-update-recursive))
+
   (yas-global-mode 1)
 
   ;;enable region overwrite
@@ -348,10 +358,11 @@ you should place your code here."
         '((swiper . ivy--regex-plus)
           (counsel-imenu . ivy--regex-plus)
           (projectile-find-file . ivy--regex-plus)
-          (counsel-find-file . ivy--regex-fuzzy)))
+          (counsel-find-file . ivy--regex-fuzzy)
+          (lsp-ivy--workspace-symbol . ivy--regex-fuzzy)))
 
   ;; automatically indent when press RET
-  ;;(global-set-key (kbd "RET") 'newline-and-indent)
+  (global-set-key (kbd "RET") 'newline-and-indent)
 
   ;;Treat headers as c++ rather than c
   (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
@@ -369,6 +380,8 @@ you should place your code here."
   ;;Find matching h or cpp
   (global-set-key (kbd "C-`") 'ff-find-other-file)
 
+  (move-text-default-bindings)
+
   (setq projectile-completion-system 'ivy)
 
   ;;Switch to ibuffer
@@ -376,6 +389,10 @@ you should place your code here."
 
   ;;Refresh buffer
   (global-set-key (kbd "<f5>") 'revert-buffer)
+  ;;Dont increase mouse speed when scrolling
+  (setq mouse-wheel-scroll-amount '(0.07))
+  (setq mouse-wheel-progressive-speed nil)
+  (setq ring-bell-function 'ignore)
 
   ;; Use C-j for immediate termination with the current value, and RET
   ;; for continuing completion for that directory. This is the ido
@@ -383,15 +400,16 @@ you should place your code here."
   (define-key ivy-minibuffer-map (kbd "C-j") #'ivy-immediate-done)
   (define-key ivy-minibuffer-map (kbd "RET") #'ivy-alt-done)
 
-  ;; LSP
-  (use-package lsp)
-  ;; in case you are using client which is available as part of lsp refer to the
-  ;; table bellow for the clients that are distributed as part of lsp-mode.el
+  ;;LSP
   (use-package lsp-clients)
   (use-package lsp-mode
     :hook (c++-mode . lsp)
     :hook (c-mode . lsp)
-    :commands lsp)
+    :commands lsp
+    :config(setq lsp-clients-clangd-args '("-j=4" "-background-index" "-log=error")))
+
+  (use-package lsp-ivy
+    :ensure t)
 
   ;; Dont show ui sideline
   (setq lsp-ui-sideline-show-flycheck nil)
@@ -399,22 +417,19 @@ you should place your code here."
   (setq lsp-ui-sideline-show-hover nil)
   (setq lsp-ui-sideline-show-symbol nil)
 
+  (use-package company-lsp
+    :requires company
+    :config
+    (push 'company-lsp company-backends))
+
   (global-set-key (kbd "M-.") 'lsp-ui-find-next-reference)
   (global-set-key (kbd "M-,") 'lsp-ui-find-prev-reference)
 
   (global-set-key (kbd "C-x r .") 'lsp-ui-peek-find-definitions)
   (global-set-key (kbd "C-x r ,") 'lsp-ui-peek-find-references)
+  (global-set-key (kbd "C-c y") 'lsp-execute-code-action)
   (global-set-key (kbd "<f9>") 'counsel-imenu)
   (add-hook 'imenu-after-jump-hook #'recenter-top-bottom)
-
-  (use-package cquery)
-  (setq cquery-executable "/home/default/.local/bin/cquery")
-  (setq cquery-cache-dir "/home/default/.cquery_cached_index/")
-  (setq cquery-extra-init-params
-        '(:index (:comments 2) :cacheFormat "msgpack"))
-  (setq cquery-sem-highlight-method 'font-lock)
-  (use-package company-lsp)
-  (push 'company-lsp company-backends)
 
   ;;RTags
   ;(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/rtags/")
@@ -422,17 +437,11 @@ you should place your code here."
   (use-package package)
   (package-initialize)
   ;(require 'rtags)
-  (use-package company)
+  (use-package company
+    :config
+    (setq company-idle-delay 0.3)
 
-  ;(setq rtags-autostart-diagnostics t)
-  ;(rtags-diagnostics)
-  ;(global-company-mode)
-  ;(rtags-enable-standard-keybindings c-mode-base-map "\C-xr")
-  ;(add-hook 'c-mode-common-hook 'rtags-start-process-unless-running)
-  ;(add-hook 'c++-mode-common-hook 'rtags-start-process-unless-running)
-
-  ;(global-set-key (kbd "<f9>") 'rtags-imenu)
-  ;(define-key c++-mode-map [C-down-mouse-1] 'rtags-find-symbol-at-point)
+    (global-company-mode 1))
 
   ;;Uncomment region
   (global-set-key (kbd "C-x C-u") 'uncomment-region)
@@ -464,11 +473,14 @@ you should place your code here."
     ("C-S-<mouse-1>" . mc/add-cursor-on-click)
     ("C-x n" . mc/insert-numbers))
 
+  (add-hook 'c++-mode-hook (lambda () (setq comment-start "/* "
+                                            comment-end   " */")))
+
   ;;Key chord
-  (require 'key-chord)
-  (key-chord-define c++-mode-map ";;"  "\C-e;")
-  (key-chord-define c++-mode-map "{}"  "\n{\n\n}\C-p\t")
-  (key-chord-mode 1)
+  ;(require 'key-chord)
+  ;(key-chord-define c++-mode-map ";;"  "\C-e;")
+  ;(key-chord-define c++-mode-map "{}"  "\n{\n\n}\C-p\t")
+  ;(key-chord-mode 1)
 
   ;;expand mode
   (global-set-key ( kbd "C-S-m") 'er/expand-region)
@@ -485,6 +497,9 @@ you should place your code here."
         ;; We remove Which Function Mode from the mode line, because it's mostly
         ;; invisible here anyway.
         (assq-delete-all 'which-func-mode mode-line-misc-info))
+
+  ;;Python
+  (setq python-shell-interpreter "python3")
 
 (defun dotspacemacs/emacs-custom-settings ()
   "Emacs custom settings.
@@ -521,10 +536,7 @@ This function is called at the very end of Spacemacs initialization."
  '(package-selected-packages
    (quote
     (centered-window lsp-ui flycheck markdown-mode lsp-javascript-typescript typescript-mode cquery company-lsp lsp-mode ht ag xterm-color shell-pop multi-term eshell-z eshell-prompt-extras esh-help web-beautify livid-mode skewer-mode simple-httpd json-mode json-snatcher json-reformat js2-refactor js2-mode js-doc company-tern dash-functional tern coffee-mode csv-mode 2048-game multiple-cursors key-chord smooth-scroll smooth-scrolling company-quickhelp pos-tip helm-company helm-c-yasnippet smeargle orgit magit-gitflow gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link fuzzy evil-magit magit magit-popup git-commit ghub let-alist with-editor company-statistics company auto-yasnippet yasnippet ac-ispell auto-complete ws-butler winum which-key wgrep volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline smex restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint ivy-hydra indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-make helm helm-core google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg eval-sexp-fu highlight elisp-slime-nav dumb-jump popup f dash s diminish define-word counsel-projectile projectile pkg-info epl counsel swiper ivy column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed async aggressive-indent adaptive-wrap ace-window ace-link avy)))
- '(which-function-mode nil)
- '(yas-snippet-dirs
-   (quote
-    ("/home/default/.emacs.d/private/snippets/" "/home/default/.emacs.d/layers/+completion/auto-completion/local/snippets"))))
+ '(which-function-mode nil))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -559,22 +571,44 @@ This function is called at the very end of Spacemacs initialization."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(flycheck-checker-error-threshold 3000)
- '(gdb-many-windows t)
- '(ido-ignore-directories (quote ("\\`CVS/" "\\`\\.\\./" "\\`\\./" "\\`\\.git")))
- '(lsp-enable-snippet nil)
+ '(company-lsp-enable-additional-text-edit nil)
+ '(grep-command "grep --color -rnHI -e ")
+ '(grep-find-command
+   (quote
+    ("find . -type f -exec grep --color -rnHI -e  {} +" . 42)))
+ '(ibuffer-formats
+   (quote
+    ((mark modified read-only " "
+           (name 18 23 :left :elide)
+           " "
+           (size 9 0 :right)
+           " "
+           (mode 16 16 :left :elide)
+           " " filename-and-process)
+     (mark " "
+           (name 16 -1)
+           " " filename))))
+ '(lsp-before-save-edits nil)
+ '(lsp-enable-indentation nil)
+ '(lsp-enable-on-type-formatting nil)
+ '(lsp-ui-peek-fontify (quote always))
+ '(lsp-ui-peek-list-width 80)
+ '(magit-module-sections-hook
+   (quote
+    (magit-insert-modules-overview magit-insert-modules-unpulled-from-upstream magit-insert-modules-unpulled-from-pushremote magit-insert-modules-unpushed-to-upstream magit-insert-modules-unpushed-to-pushremote)))
  '(magit-status-sections-hook
    (quote
-    (magit-insert-status-headers magit-insert-merge-log magit-insert-rebase-sequence magit-insert-am-sequence magit-insert-sequencer-sequence magit-insert-bisect-output magit-insert-bisect-rest magit-insert-bisect-log magit-insert-untracked-files magit-insert-unstaged-changes magit-insert-staged-changes magit-insert-stashes magit-insert-unpulled-from-upstream magit-insert-unpushed-to-upstream)))
+    (magit-insert-status-headers magit-insert-merge-log magit-insert-rebase-sequence magit-insert-am-sequence magit-insert-sequencer-sequence magit-insert-bisect-output magit-insert-bisect-rest magit-insert-bisect-log magit-insert-untracked-files magit-insert-unstaged-changes magit-insert-staged-changes magit-insert-stashes magit-insert-unpushed-to-pushremote magit-insert-unpulled-from-pushremote magit-insert-unpulled-from-upstream magit-insert-unpushed-to-upstream)))
+ '(org-support-shift-select (quote always))
  '(package-selected-packages
    (quote
-    (helm-themes helm-swoop helm-pydoc helm-projectile helm-mode-manager helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag ace-jump-helm-line helm helm-core lv skewer-mode simple-httpd json-snatcher json-reformat js2-mode tern powerline org-plus-contrib multiple-cursors magit-popup hydra parent-mode flx highlight magit transient git-commit with-editor smartparens iedit anzu evil goto-chg projectile counsel swiper ivy bind-map bind-key yasnippet packed async avy popup company pkg-info epl f s yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode flycheck-pos-tip pos-tip cython-mode company-anaconda anaconda-mode pythonic nimbus-theme buffer-expose dash-functional dash lsp-ui cquery company-lsp lsp-mode markdown-mode flycheck ht ws-butler winum which-key wgrep web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline smex smeargle restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox orgit org-bullets open-junk-file neotree move-text magit-gitflow macrostep lorem-ipsum livid-mode linum-relative link-hint key-chord json-mode js2-refactor js-doc ivy-hydra indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-make google-translate golden-ratio gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link fuzzy flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump diminish define-word csv-mode counsel-projectile company-tern company-statistics column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ac-ispell)))
+    (org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download htmlize gnuplot projectile counsel swiper yasnippet company avy ivy magit transient git-commit with-editor async lv dash org-plus-contrib bind-key evil flx lsp-mode dash-functional hydra f lsp-ivy company-box anaconda-mode bui tree-mode pythonic dap-mode helm-themes helm-swoop helm-projectile helm-mode-manager helm-flx helm-descbinds helm-ag ace-jump-helm-line helm helm-core yapfify ws-butler winum which-key wgrep web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline smex smeargle restart-emacs request rainbow-delimiters pyvenv pytest pyenv-mode py-isort popwin pip-requirements persp-mode pcre2el paradox orgit org-bullets open-junk-file neotree move-text magit-gitflow macrostep lsp-ui lorem-ipsum livid-mode live-py-mode linum-relative link-hint key-chord json-mode js2-refactor js-doc ivy-hydra indent-guide hy-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-make google-translate golden-ratio gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link fuzzy flycheck flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump diminish define-word cython-mode csv-mode counsel-projectile company-tern company-statistics company-lsp company-anaconda column-enforce-mode coffee-mode clean-aindent-mode auto-yasnippet auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ac-ispell)))
  '(projectile-globally-ignored-directories
    (quote
-    (".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" "./data/"))))
+    (".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" "/home/default/projects/premier3/build" ".clangd"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(smerge-refined-added ((t (:inherit smerge-refined-change :background "#0b4012")))))
