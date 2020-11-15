@@ -1,0 +1,212 @@
+;; Init.el - emacs configuration file
+
+;; Initialize package sources
+(require 'package)
+
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("org" . "https://orgmode.org/elpa/")
+                         ("elpa" . "https://elpa.gnu.org/packages/")))
+
+(package-initialize)
+(unless package-archive-contents
+  (package-refresh-contents))
+
+  ;; Initialize use-package on non-Linux platforms
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+
+(require 'use-package)
+(setq use-package-always-ensure t)
+
+;;Startup Screen
+(use-package dashboard
+    :ensure t
+    :diminish dashboard-mode
+    :config
+    (setq dashboard-items '((recents  . 10)
+                            (bookmarks . 10)))
+    (dashboard-setup-startup-hook))
+
+;;Set default folder
+(setq default-directory "E:/Coding/")
+;;Set Time
+(display-time-mode 1)
+(setq inhibit-startup-message t)
+
+;;(setq display-time-day-and-date t)
+(setq display-time-24hr-format t)
+
+;; This causes the current time in the mode line to be displayed in bold
+(setq display-time-string-forms
+      '((propertize (format-time-string "%H:%M" now) 'face 'bold)))
+
+;;some c goodies
+(setq c-default-style "linux" ;; set style to "linux"
+      c-basic-offset 4)
+
+(scroll-bar-mode -1)        ; Disable visible scrollbar
+(tool-bar-mode -1)          ; Disable the toolbar
+(tooltip-mode -1)           ; Disable tooltips
+(set-fringe-mode 10)        ; Give some breathing room
+(menu-bar-mode -1)          ; Disable the menu bar
+
+;; Set up the visible bell
+(setq visible-bell t)
+
+;;enable region overwrite
+(delete-selection-mode 1)
+
+;;fixup prompts
+(defalias 'yes-or-no-p 'y-or-n-p)
+
+;;Switch to ibuffer
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+
+;;Enable line numbers
+(column-number-mode)
+(global-display-line-numbers-mode t)
+
+;;Refresh buffer
+(global-set-key (kbd "<f5>") 'revert-buffer)
+
+;;Set appearance of a tab that is represented by 4 spaces
+(setq-default tab-width 4)
+
+;;Reposition screen
+(add-hook 'imenu-after-jump-hook #'recenter-top-bottom)
+
+;; Themes
+(use-package doom-themes
+  :init (load-theme 'doom-spacegrey t))
+
+;; Font
+(set-face-attribute 'default nil :font "Source Code Pro" :height 110)
+
+;;Remove trailing whitespace
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+(setq-default spacemacs-show-trailing-whitespace nil)
+
+;;Uncomment region
+(global-set-key (kbd "C-x C-u") 'uncomment-region)
+
+;;Kill current buffer
+(global-set-key (kbd "C-x k") 'kill-this-buffer)
+
+;;Go to line remap
+(global-set-key (kbd "C-x C-l") 'goto-line)
+
+;;Find matching h or cpp
+(global-set-key (kbd "C-`") 'ff-find-other-file)
+
+;;Go to last change
+(global-set-key (kbd "C-x c <left>") 'goto-last-change)
+(global-set-key (kbd "C-x c <right>") 'goto-last-change-reverse)
+
+;;Treat headers as c++ rather than c
+(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+
+;; automatically indent when press RET
+(global-set-key (kbd "RET") 'newline-and-indent)
+
+;; Doom Mod Line
+(use-package all-the-icons)
+
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom ((doom-modeline-height 15)))
+
+;; Which key
+(use-package which-key
+  :init (which-key-mode)
+  :diminish which-key-mode
+  :config
+  (setq which-key-idle-delay 1))
+
+;; Magit
+(use-package magit
+  :bind ("C-x g" . magit-status))
+
+;;Flycheck
+(use-package flycheck)
+
+;; Ivy
+(use-package ivy
+  :diminish
+  :bind
+  (:map ivy-minibuffer-map
+		("C-j" . ivy-immediate-done)
+		("RET" . ivy-alt-done))
+  :config
+  (setq ivy-extra-directories () )
+  (setq ivy-re-builders-alist
+        '((swiper . ivy--regex-plus)
+          (counsel-imenu . ivy--regex-plus)
+          (projectile-find-file . ivy--regex-plus)
+          (counsel-find-file . ivy--regex-fuzzy)
+          (lsp-ivy--workspace-symbol . ivy--regex-fuzzy)))
+  (ivy-mode 1))
+
+;;Swiper
+(use-package swiper
+  :bind ("M-s ." . swiper-isearch-thing-at-point))
+
+;; Projectile
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'ivy)))
+
+;; Company
+(use-package company
+  :config
+  (setq company-idle-delay 0.4)
+  (global-company-mode 1))
+
+;;LSP
+(use-package lsp-clients)
+(use-package lsp-mode
+  :hook (c++-mode . lsp)
+  :hook (c-mode . lsp)
+  :commands lsp
+  :config
+  (setq lsp-clients-clangd-args '("-j=4" "-background-index" "-log=error"))
+  ;; Dont show ui sideline
+  (setq lsp-ui-sideline-show-flycheck nil)
+  (setq lsp-ui-sideline-show-code-actions nil)
+  (setq lsp-ui-sideline-show-hover nil)
+  (setq lsp-ui-sideline-show-symbol nil))
+
+(use-package lsp-ivy
+  :ensure t)
+
+;; LSP UI
+(use-package lsp-ui
+  :hook (lsp-mode . lsp-ui-mode)
+  :custom
+  (lsp-ui-doc-position 'bottom))
+
+;;Multiple Cursors
+(use-package multiple-cursors
+  :init
+  (setq multiple-cursors t)
+  :bind
+  ("C-x /" . mc/mark-next-like-this)
+  ("C->" . mc/mark-next-like-this-word)
+  ("C-<" . mc/mark-previous-like-this-word)
+  ("C-S-SPC" . mc/skip-to-next-like-this)
+  ("C-S-<mouse-1>" . mc/add-cursor-on-click)
+  ("C-x n" . mc/insert-numbers))
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(flycheck multiple-cursors lsp-ui lsp-ivy lsp-mode lsp-clients magit company projectile swiper ivy which-key doom-modeline all-the-icons doom-themes dashboard use-package)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
