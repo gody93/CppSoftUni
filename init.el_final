@@ -11,7 +11,7 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
-  ;; Initialize use-package on non-Linux platforms
+;; Initialize use-package on non-Linux platforms
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
 
@@ -28,13 +28,15 @@
     (dashboard-setup-startup-hook))
 
 ;;Set default folder
-(setq default-directory "E:/Coding/")
+(setq default-directory "~/projects/senator/")
+
 ;;Set Time
 (display-time-mode 1)
-(setq inhibit-startup-message t)
-
-;;(setq display-time-day-and-date t)
+(setq inhibit-startup-message nil)
 (setq display-time-24hr-format t)
+
+;;Start emacs maximized
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
 
 ;; This causes the current time in the mode line to be displayed in bold
 (setq display-time-string-forms
@@ -49,9 +51,6 @@
 (tooltip-mode -1)           ; Disable tooltips
 (set-fringe-mode 10)        ; Give some breathing room
 (menu-bar-mode -1)          ; Disable the menu bar
-
-;; Set up the visible bell
-(setq visible-bell t)
 
 ;;enable region overwrite
 (delete-selection-mode 1)
@@ -72,15 +71,18 @@
 ;;Set appearance of a tab that is represented by 4 spaces
 (setq-default tab-width 4)
 
-;;Reposition screen
-(add-hook 'imenu-after-jump-hook #'recenter-top-bottom)
-
+;;Different style comment
+(add-hook 'c++-mode-hook (lambda () (setq comment-start "/* "
+                                            comment-end   " */")))
 ;; Themes
 (use-package doom-themes
-  :init (load-theme 'doom-spacegrey t))
+  :init (load-theme 'doom-one t))
 
 ;; Font
 (set-face-attribute 'default nil :font "Source Code Pro" :height 110)
+
+;;Save history
+(savehist-mode 1)
 
 ;;Remove trailing whitespace
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
@@ -99,8 +101,9 @@
 (global-set-key (kbd "C-`") 'ff-find-other-file)
 
 ;;Go to last change
-(global-set-key (kbd "C-x c <left>") 'goto-last-change)
-(global-set-key (kbd "C-x c <right>") 'goto-last-change-reverse)
+(use-package goto-last-change
+  :bind
+  ("C-x c <left>" . goto-last-change))
 
 ;;Treat headers as c++ rather than c
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
@@ -108,12 +111,17 @@
 ;; automatically indent when press RET
 (global-set-key (kbd "RET") 'newline-and-indent)
 
+;;Expand region
+(use-package expand-region
+  :bind ("C-S-m" . er/expand-region))
+
 ;; Doom Mod Line
 (use-package all-the-icons)
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
-  :custom ((doom-modeline-height 15)))
+  :custom ((doom-modeline-height 12)
+		   (doom-modeline-buffer-file-name-style 'buffer-name)))
 
 ;; Which key
 (use-package which-key
@@ -124,7 +132,12 @@
 
 ;; Magit
 (use-package magit
-  :bind ("C-x g" . magit-status))
+  :bind
+  ("C-x g" . magit-status)
+  ("C-x l" . magit-show-commit))
+
+;;Grep
+(global-set-key (kbd "C-S-F") 'rgrep)
 
 ;;Flycheck
 (use-package flycheck)
@@ -148,34 +161,67 @@
 
 ;;Swiper
 (use-package swiper
-  :bind ("M-s ." . swiper-isearch-thing-at-point))
+  :bind
+  ("C-s" . swiper)
+  ("M-s ." . swiper-thing-at-point))
 
 ;; Projectile
 (use-package projectile
   :diminish projectile-mode
   :config (projectile-mode)
-  :custom ((projectile-completion-system 'ivy)))
+  :custom ((projectile-completion-system 'ivy))
+  :bind-keymap
+  ("C-c p" . projectile-command-map))
 
 ;; Company
 (use-package company
   :config
   (setq company-idle-delay 0.4)
+  (setq company-selection-wrap-around t)
   (global-company-mode 1))
 
+;;SmartParens
+(use-package smartparens
+  :init (smartparens-global-mode 1)
+  :config(show-smartparens-global-mode))
+
+;; Add new line and indent between {}
+(defun indent-between-pair (&rest _ignored)
+  (newline)
+  (indent-according-to-mode)
+  (forward-line -1)
+  (indent-according-to-mode))
+
+(sp-local-pair 'prog-mode "{" nil :post-handlers '((indent-between-pair "RET")))
+
+;;Yasnippet
+(use-package yasnippet
+  :hook((c++-mode . yas-minor-mode)
+		(c-mode . yas-minor-mode)))
+
+;;Dap Mode
+(use-package dap-mode
+  :config
+  (require 'dap-cpptools)
+  (dap-ui-mode 1))
+
 ;;LSP
-(use-package lsp-clients)
 (use-package lsp-mode
-  :hook (c++-mode . lsp)
-  :hook (c-mode . lsp)
+  :hook((c++-mode . lsp)
+		(c-mode . lsp))
   :commands lsp
   :config
-  (setq lsp-clients-clangd-args '("-j=4" "-background-index" "-log=error"))
-  ;; Dont show ui sideline
+  ;;  Dont show ui sideline
   (setq lsp-ui-sideline-show-flycheck nil)
   (setq lsp-ui-sideline-show-code-actions nil)
   (setq lsp-ui-sideline-show-hover nil)
-  (setq lsp-ui-sideline-show-symbol nil))
+  (setq lsp-ui-sideline-show-symbol nil)
+  (setq lsp--apply-text-edit nil)
+  (setq lsp-clients-clangd-args '("-j=2" "-background-index=true" "-log=error"))
+  :bind
+  ("C-c y" . lsp-execute-code-action))
 
+;;Lsp Ivy
 (use-package lsp-ivy
   :ensure t)
 
@@ -183,7 +229,14 @@
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
   :custom
-  (lsp-ui-doc-position 'bottom))
+  (lsp-ui-doc-position 'top)
+  (lsp-ui-peek-fontify 'always)
+  (lsp-ui-peek-list-width 80)
+  :bind
+  ("M-." . lsp-ui-find-next-reference)
+  ("M-," . lsp-ui-find-prev-reference)
+  ("C-x r ." . lsp-ui-peek-find-definitions)
+  ("C-x r ," . lsp-ui-peek-find-references))
 
 ;;Multiple Cursors
 (use-package multiple-cursors
@@ -193,17 +246,82 @@
   ("C-x /" . mc/mark-next-like-this)
   ("C->" . mc/mark-next-like-this-word)
   ("C-<" . mc/mark-previous-like-this-word)
-  ("C-S-SPC" . mc/skip-to-next-like-this)
+  ("C-M-SPC" . mc/skip-to-previous-like-this)
   ("C-S-<mouse-1>" . mc/add-cursor-on-click)
   ("C-x n" . mc/insert-numbers))
+
+;;Counsel
+(use-package counsel
+  :config
+  (setq counsel-find-file-ignore-regexp "\\(?:\\`[#.]\\)\\|\\.\\o")
+  :bind
+  ("<f9>" . counsel-imenu)
+  ("C-x C-f" . counsel-find-file)
+  ("M-x" . counsel-M-x))
+(add-hook 'imenu-after-jump-hook #'recenter-top-bottom)
+
+;;Ag
+(use-package ag)
+
+;;Move text
+(use-package move-text
+  :bind
+  ("M-<up>" . move-text-up)
+  ("M-<down>" . move-text-down))
+
+;;Ediff
+(use-package ediff
+  :config
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+  (setq ediff-split-window-function 'split-window-horizontally)
+  (setq ediff-diff-options "-w"))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(Buffer-menu-use-header-line nil)
+ '(c-hanging-braces-alist
+   '((block-close . c-snug-do-while)
+	 (statement-cont)
+	 (substatement-open after)
+	 (brace-list-open after)
+	 (brace-entry-open after)
+	 (extern-lang-open after)
+	 (namespace-open after)
+	 (module-open after)
+	 (composition-open after)
+	 (inexpr-class-open after)
+	 (inexpr-class-close before)
+	 (arglist-cont-nonempty)))
+ '(dap-gdb-lldb-path-lldb
+   '("nodejs" "/home/default/.emacs.d/.extension/vscode/webfreak.debug/extension/out/src/lldb.js"))
+ '(ibuffer-formats
+   '((mark modified read-only " "
+		   (name 30 30 :left :elide)
+		   " "
+		   (size 9 -1 :right)
+		   " "
+		   (mode 16 16 :left :elide)
+		   " " filename-and-process)
+	 (mark " "
+		   (name 16 -1)
+		   " " filename)))
+ '(lsp-before-save-edits nil)
+ '(lsp-completion-enable-additional-text-edit nil)
+ '(lsp-enable-indentation nil)
+ '(lsp-enable-on-type-formatting nil)
+ '(lsp-headerline-breadcrumb-icons-enable t)
+ '(lsp-headerline-breadcrumb-segments '(symbols))
+ '(magit-section-visibility-indicator '(magit-fringe-bitmap-bold> . magit-fringe-bitmap-boldv))
+ '(magit-status-sections-hook
+   '(magit-insert-status-headers magit-insert-merge-log magit-insert-rebase-sequence magit-insert-am-sequence magit-insert-sequencer-sequence magit-insert-bisect-output magit-insert-bisect-rest magit-insert-bisect-log magit-insert-untracked-files magit-insert-unstaged-changes magit-insert-staged-changes magit-insert-stashes magit-insert-unpushed-to-upstream magit-insert-unpulled-from-pushremote magit-insert-unpulled-from-upstream))
  '(package-selected-packages
-   '(flycheck multiple-cursors lsp-ui lsp-ivy lsp-mode lsp-clients magit company projectile swiper ivy which-key doom-modeline all-the-icons doom-themes dashboard use-package)))
+   '(ivy-prescient prescient which-function-mode stickyfunc-enhance counsel-projectile move-text goto-last-change yasnippet smartparens ag node dap-mode smex expand-region winner-mode lsp-clients which-key use-package swiper projectile multiple-cursors magit lsp-ui lsp-ivy flycheck doom-themes doom-modeline dashboard company))
+ '(projectile-globally-ignored-directories
+   '(".idea" ".vscode" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" ".ccls-cache" ".clangd" ".clangd/index"))
+ '(use-file-dialog nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
